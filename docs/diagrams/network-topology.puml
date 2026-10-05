@@ -1,0 +1,39 @@
+@startuml network-topology
+!theme plain
+title TRC WAP Relay - Network Topology
+
+skinparam node {
+  BackgroundColor #f5f5f5
+  BorderColor #333333
+}
+
+node "Palm m105\n(Palm OS 3.5)" as palm {
+  component "Neomar / Rover 1.5\n(WAP micro-browser)" as rover
+}
+
+node "Windows XP PC" as xp {
+  component "MochaPPP / Softick PPP\n(PPP server, user mode)" as ppp
+  component "Windows TCP/IP\n+165.160.13.20/29\n+165.160.15.20/29\n(added at runtime)" as stack
+  component "trc-wap-relay\n(UDP :49300)" as relay
+}
+
+cloud "Internet" as internet
+
+node "theretrocenter.com" as trc {
+  component "WAP gateway\n(UDP :49300)" as gateway
+  component "Website\n(WML -> WBXML)" as site
+}
+
+rover --> ppp : PPP over serial\nUDP to 165.160.13.20:49300
+ppp --> stack : Winsock sendto()
+stack --> relay : local delivery\n(destination is a local address)
+relay --> internet : UDP from the PC's own address
+internet --> gateway
+gateway --> site : HTTP
+
+note right of relay
+  Replies go back to the device
+  from 165.160.13.20:49300 -
+  the address it called
+end note
+@enduml

@@ -1,0 +1,26 @@
+@startuml components
+!theme plain
+title TRC WAP Relay - Components
+
+package "trc-wap-relay.exe" {
+  [main.c\ncommand line, startup,\nCtrl+C cleanup] as main
+  [browsers.c\nbrowser profiles] as browsers
+  [relay.c\nlisteners, sessions,\nselect() loop] as relay
+  [netaddr.c\nclaim / release addresses] as netaddr
+  [log.c\nconsole log] as log
+}
+
+package "Windows" {
+  [Winsock 2\n(ws2_32.dll)] as winsock
+  [IP Helper\n(iphlpapi.dll)] as iphlp
+}
+
+main --> browsers : selects profiles (-b)
+main --> relay : one listener per\nprofile address
+main --> netaddr : release on exit
+relay --> netaddr : claim a missing address
+relay --> winsock : UDP sockets
+netaddr --> iphlp : GetBestInterface\nAddIPAddress\nDeleteIPAddress
+relay --> log
+netaddr --> log
+@enduml

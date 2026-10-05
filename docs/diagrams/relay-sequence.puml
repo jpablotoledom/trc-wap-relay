@@ -1,0 +1,28 @@
+@startuml relay-sequence
+!theme plain
+title TRC WAP Relay - Request Flow
+
+participant "Browser\n(Palm)" as B
+participant "PPP software\n(PC)" as P
+participant "trc-wap-relay\n(PC)" as X
+participant "WAP gateway\n(theretrocenter.com)" as G
+
+== Startup ==
+X -> X : resolve gateway host
+X -> X : AddIPAddress(165.160.13.20, 165.160.15.20)\non the connection that reaches the gateway
+X -> X : bind UDP 165.160.13.20:49300, 165.160.15.20:49300
+
+== Each request ==
+B -> P : UDP to 165.160.13.20:49300\n(WTP Invoke + WSP GET)
+P -> X : Winsock sendto() - delivered locally
+alt first datagram from this peer
+  X -> X : new session:\nupstream socket connected to the gateway
+end
+X -> G : same bytes
+G --> X : WTP Result (WBXML page)
+X --> P : sendto(peer) from 165.160.13.20:49300
+P --> B : reply from the address it called
+
+== Ctrl+C ==
+X -> X : DeleteIPAddress for every address it added
+@enduml
